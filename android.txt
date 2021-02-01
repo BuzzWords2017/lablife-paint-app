@@ -1,0 +1,3 @@
+title=LabLifePaintApp
+author=BuzzWords
+orientation=portrait
