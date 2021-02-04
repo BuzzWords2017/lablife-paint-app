@@ -1,0 +1,18 @@
+# -*- coding: utf-8 -*-
+
+MyPaintLayout:
+	orientation: 'vertical'
+	MyPaintWidget:
+		id: paint
+	ActionBar:
+		ActionView:
+			ActionPrevious:
+				with_previous: False
+			ActionButton:
+				text: 'Clear'
+				on_press:
+					root.clear_modal_view.open()
+
+<ClearModal>:
+	size_hint: 0.7, 0.7
+
