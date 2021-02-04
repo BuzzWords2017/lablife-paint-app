@@ -4,7 +4,7 @@
 title = LabLife Paint App
 
 # (str) Package name
-package.name = lablife-paint-app
+package.name = lablifepaint
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.test

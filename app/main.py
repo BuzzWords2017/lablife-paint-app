@@ -40,8 +40,8 @@ class MyPaintLayout(BoxLayout):
 class ClearModal(ModalView):
 	pass
 
-class LabLifePaintApp(App):
+class lablifepaintApp(App):
 	pass
 
 if __name__ == '__main__':
-	LabLifePaintApp().run()
+	lablifepaintApp().run()
