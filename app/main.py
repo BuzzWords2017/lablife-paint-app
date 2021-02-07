@@ -29,7 +29,10 @@ class MyPaintWidget(Widget):
 				width=self.current_width, cap='round', joint='round')
 
 	def on_touch_move(self, touch):
-		touch.ud['line'].points += [touch.x, touch.y]
+		try:
+			touch.ud['line'].points += [touch.x, touch.y]
+		except KeyError:
+			pass
 
 	def set_current_width(self, width):
 		self.current_width = width
