@@ -95,54 +95,23 @@ class MyPaintLayout(BoxLayout):
 		))
 		self.clear_modal_view.add_widget(self.clear_modal_layout)
 
+		# ペンの太さのモーダルウィンドウ
+		self.pen_width_modal_view = ModalView(size_hint=(0.7, 0.5))
+		self.pen_width_modal_layout = BoxLayout(orientation='vertical')
+		self.pen_width_label = Label(text="Width: "+str(int(self.paint.current_width)))
+		self.pen_width_slider = Slider(min=1, max=10, value=self.paint.current_width, step=1, 
+			on_touch_move=lambda x, y : self.change_pen_width(self.pen_width_slider.value))
+		self.pen_width_modal_layout.add_widget(self.pen_width_label)
+		self.pen_width_modal_layout.add_widget(self.pen_width_slider)
+		self.pen_width_modal_layout.add_widget(Button(
+			text='Close', 
+			on_press=self.pen_width_modal_view.dismiss
+		))
+		self.pen_width_modal_view.add_widget(self.pen_width_modal_layout)
+
 		self.pen_color_btn = ActionButton(text='Color', on_press=self.pen_color_modal_view.open)
-		self.pen_width_btn = ActionButton(text='width: ' + str(self.paint.current_width))
+		self.pen_width_btn = ActionButton(text='width: ' + str(int(self.paint.current_width)), on_press=self.pen_width_modal_view.open)
 		self.clear_btn = ActionButton(text='Clear', on_press=self.clear_modal_view.open)
-
-		# サイズ決定用のActionDropDown
-		self.pen_width_dropdown = ActionDropDown()
-
-		self.pen_width_btn_1 = ActionButton(text="1", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(1))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_1)
-
-		self.pen_width_btn_2 = ActionButton(text="2", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(2))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_2)
-
-		self.pen_width_btn_3 = ActionButton(text="3", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(3))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_3)
-
-		self.pen_width_btn_4 = ActionButton(text="4", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(4))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_4)
-
-		self.pen_width_btn_5 = ActionButton(text="5", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(5))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_5)
-
-		self.pen_width_btn_6 = ActionButton(text="6", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(6))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_6)
-
-		self.pen_width_btn_7 = ActionButton(text="7", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(7))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_7)
-
-		self.pen_width_btn_8 = ActionButton(text="8", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(8))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_8)
-
-		self.pen_width_btn_9 = ActionButton(text="9", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(9))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_9)
-
-		self.pen_width_btn_10 = ActionButton(text="10", size_hint_y=None, 
-			on_press=lambda button: self.change_pen_width(10))
-		self.pen_width_dropdown.add_widget(self.pen_width_btn_10)
-
-		self.pen_width_btn.bind(on_press=self.pen_width_dropdown.open)
 
 		# ウィジェットの配置
 		self.action_view.add_widget(self.action_previous)
@@ -156,7 +125,7 @@ class MyPaintLayout(BoxLayout):
 	def change_pen_width(self, width):
 		self.paint.set_current_width(width)
 		self.pen_width_btn.text = "width: " + str(width)
-		self.pen_width_dropdown.dismiss()
+		self.pen_width_label.text = "Width: " + str(width)
 	
 	def change_pen_color_slider(self, color:str, num:int):
 		if color=='red':
