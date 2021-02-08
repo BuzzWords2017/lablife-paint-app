@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from kivy.app import App
-from kivy.uix.actionbar import ActionBar, ActionButton, ActionDropDown, ActionPrevious, ActionView
+from kivy.clock import Clock, ClockEvent
+from kivy.uix.actionbar import ActionBar, ActionButton, ActionDropDown, ActionPrevious, ActionView, ActionLabel
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
 from kivy.uix.label import Label
@@ -9,6 +10,31 @@ from kivy.uix.slider import Slider
 from kivy.factory import Factory
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Ellipse, Line
+
+class ActionPenPreview(ActionLabel):
+	def __init__(self, **kwargs):
+		super(ActionPenPreview, self).__init__(**kwargs)
+
+		# TODO: もっと正しく初期のプレビューを配置する方法があれば差し替える
+		Clock.schedule_once(lambda _: self.update_current_pen(), 1)
+
+	def update_current_pen(self, r=255, g=255, b=255, w=1):
+		self.canvas.clear()
+		with self.canvas:
+			Color(r / 255, g / 255, b / 255)
+			Line(points=((self.x+self.width/10), self.center_y, (self.right-self.width/10), self.center_y), 
+				width=w, cap='round', joint='round')
+
+class PenPreview(Label):
+	def __init__(self, **kwargs):
+		super(PenPreview, self).__init__(**kwargs)
+
+	def update_current_pen(self, r=255, g=255, b=255, w=1):
+		self.canvas.clear()
+		with self.canvas:
+			Color(r / 255, g / 255, b / 255)
+			Line(points=((self.x+self.width/10), self.center_y, (self.right-self.width/10), self.center_y), 
+				width=w, cap='round', joint='round')
 
 
 class MyPaintWidget(Widget):
@@ -52,12 +78,13 @@ class MyPaintLayout(BoxLayout):
 		self.paint = MyPaintWidget()
 		self.action_bar = ActionBar()
 		self.action_view = ActionView()
-		self.action_previous = ActionPrevious(title='Current Color')
+		self.action_previous = ActionPrevious()
+		self.pen_preview = ActionPenPreview()
 
 		# 色の決定用のモーダルウィンドウ
 		self.pen_color_modal_view = ModalView(size_hint=(0.8, 0.8))
 		self.pen_color_modal_layout = BoxLayout(orientation='vertical')
-		self.current_color_label = Label(text='Current Color')
+		self.current_color_label = PenPreview()
 		self.r_label = Label(text="Red: "+str(self.paint.red))
 		self.g_label = Label(text="Green: "+str(self.paint.green))
 		self.b_label = Label(text="Blue: "+str(self.paint.blue))
@@ -109,12 +136,21 @@ class MyPaintLayout(BoxLayout):
 		))
 		self.pen_width_modal_view.add_widget(self.pen_width_modal_layout)
 
-		self.pen_color_btn = ActionButton(text='Color', on_press=self.pen_color_modal_view.open)
+		self.pen_color_btn = ActionButton(text='Color', on_press=lambda _: [
+			self.pen_color_modal_view.open(), 
+	
+			# TODO: もっと正しく初期のプレビューを配置する方法があれば差し替える
+			Clock.schedule_once(lambda _: self.current_color_label.update_current_pen(
+				self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
+			), 0)
+		])
+
 		self.pen_width_btn = ActionButton(text='width: ' + str(int(self.paint.current_width)), on_press=self.pen_width_modal_view.open)
 		self.clear_btn = ActionButton(text='Clear', on_press=self.clear_modal_view.open)
 
 		# ウィジェットの配置
 		self.action_view.add_widget(self.action_previous)
+		self.action_view.add_widget(self.pen_preview)
 		self.action_view.add_widget(self.pen_color_btn)
 		self.action_view.add_widget(self.pen_width_btn)
 		self.action_view.add_widget(self.clear_btn)
@@ -126,6 +162,12 @@ class MyPaintLayout(BoxLayout):
 		self.paint.set_current_width(width)
 		self.pen_width_btn.text = "width: " + str(width)
 		self.pen_width_label.text = "Width: " + str(width)
+		self.pen_preview.update_current_pen(
+			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
+		)
+		self.current_color_label.update_current_pen(
+			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
+		)
 	
 	def change_pen_color_slider(self, color:str, num:int):
 		if color=='red':
@@ -138,16 +180,11 @@ class MyPaintLayout(BoxLayout):
 			self.paint.blue = num
 			self.b_label.text = "Blue: "+str(self.paint.blue)
 
-		self.action_previous.color=(
-			self.paint.red/255,
-			self.paint.green/255,
-			self.paint.blue/255,
+		self.pen_preview.update_current_pen(
+			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
 		)
-
-		self.current_color_label.color=(
-			self.paint.red/255,
-			self.paint.green/255,
-			self.paint.blue/255,
+		self.current_color_label.update_current_pen(
+			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
 		)
 
 
