@@ -43,6 +43,9 @@ class MyPaintWidget(Widget):
 
 		self.current_width = 1
 
+		# 戻る・やり直しボタン用
+		self.back_redo_log = []
+
 		self.red = 255
 		self.green = 255
 		self.blue = 255
@@ -54,6 +57,10 @@ class MyPaintWidget(Widget):
 			touch.ud['line'] = Line(points=(touch.x, touch.y), 
 				width=self.current_width, cap='round', joint='round')
 
+		# 戻るボタンのログをリセット
+		if len(self.back_redo_log) > 0:
+			self.back_redo_log.clear()
+
 	def on_touch_move(self, touch):
 		try:
 			touch.ud['line'].points += [touch.x, touch.y]
@@ -62,6 +69,19 @@ class MyPaintWidget(Widget):
 
 	def set_current_width(self, width):
 		self.current_width = width
+	
+	def back_action(self):
+		if len(self.canvas.children) >= 3:
+			self.back_redo_log.append(self.canvas.children.pop(-3))
+			self.back_redo_log.append(self.canvas.children.pop(-2))
+			self.back_redo_log.append(self.canvas.children.pop(-1))
+
+	def redo_action(self):
+		if len(self.back_redo_log) >= 3:
+			self.canvas.children.append(self.back_redo_log.pop(-3))
+			self.canvas.children.append(self.back_redo_log.pop(-2))
+			self.canvas.children.append(self.back_redo_log.pop(-1))
+
 
 class PenWidthDropDown(ActionDropDown):
 	pass
@@ -80,6 +100,15 @@ class MyPaintLayout(BoxLayout):
 		self.action_view = ActionView()
 		self.action_previous = ActionPrevious()
 		self.pen_preview = ActionPenPreview()
+
+		# 戻る・やり直しボタン
+		self.back_action_button = ActionButton(text='Back', on_press=lambda _:
+			self.paint.back_action()
+		)
+
+		self.redo_action_button = ActionButton(text='Redo', on_press=lambda _:
+			self.paint.redo_action()
+		)
 
 		# 色の決定用のモーダルウィンドウ
 		self.pen_color_modal_view = ModalView(size_hint=(0.8, 0.8))
@@ -114,7 +143,7 @@ class MyPaintLayout(BoxLayout):
 		self.clear_modal_layout.add_widget(Label(text='Do you really want to clear?'))
 		self.clear_modal_layout.add_widget(Button(
 			text='Yes', 
-			on_press=lambda button: [self.paint.canvas.clear(), self.clear_modal_view.dismiss()]
+			on_press=lambda button: [self.paint.canvas.clear(), self.paint.back_redo_log.clear(), self.clear_modal_view.dismiss()]
 		))
 		self.clear_modal_layout.add_widget(Button(
 			text='No', 
@@ -151,6 +180,8 @@ class MyPaintLayout(BoxLayout):
 		# ウィジェットの配置
 		self.action_view.add_widget(self.action_previous)
 		self.action_view.add_widget(self.pen_preview)
+		self.action_view.add_widget(self.back_action_button)
+		self.action_view.add_widget(self.redo_action_button)
 		self.action_view.add_widget(self.pen_color_btn)
 		self.action_view.add_widget(self.pen_width_btn)
 		self.action_view.add_widget(self.clear_btn)
