@@ -3,6 +3,7 @@ from kivy.app import App
 from kivy.clock import Clock, ClockEvent
 from kivy.uix.actionbar import ActionBar, ActionButton, ActionDropDown, ActionPrevious, ActionView, ActionLabel
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.colorpicker import ColorPicker
 from kivy.uix.modalview import ModalView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -18,10 +19,10 @@ class ActionPenPreview(ActionLabel):
 		# TODO: もっと正しく初期のプレビューを配置する方法があれば差し替える
 		Clock.schedule_once(lambda _: self.update_current_pen(), 1)
 
-	def update_current_pen(self, r=255, g=255, b=255, w=1):
+	def update_current_pen(self, r=1, g=1, b=1, w=1):
 		self.canvas.clear()
 		with self.canvas:
-			Color(r / 255, g / 255, b / 255)
+			Color(r, g, b)
 			Line(points=((self.x+self.width/10), self.center_y, (self.right-self.width/10), self.center_y), 
 				width=w, cap='round', joint='round')
 
@@ -29,10 +30,10 @@ class PenPreview(Label):
 	def __init__(self, **kwargs):
 		super(PenPreview, self).__init__(**kwargs)
 
-	def update_current_pen(self, r=255, g=255, b=255, w=1):
+	def update_current_pen(self, r=1, g=1, b=1, w=1):
 		self.canvas.clear()
 		with self.canvas:
-			Color(r / 255, g / 255, b / 255)
+			Color(r, g, b)
 			Line(points=((self.x+self.width/10), self.center_y, (self.right-self.width/10), self.center_y), 
 				width=w, cap='round', joint='round')
 
@@ -46,14 +47,14 @@ class MyPaintWidget(Widget):
 		# 戻る・やり直しボタン用
 		self.back_redo_log = []
 
-		self.red = 255
-		self.green = 255
-		self.blue = 255
+		self.red = 1
+		self.green = 1
+		self.blue = 1
 
 
 	def on_touch_down(self, touch):
 		with self.canvas:
-			Color(self.red / 255, self.green / 255, self.blue / 255)
+			Color(self.red, self.green, self.blue)
 			touch.ud['line'] = Line(points=(touch.x, touch.y), 
 				width=self.current_width, cap='round', joint='round')
 
@@ -112,30 +113,18 @@ class MyPaintLayout(BoxLayout):
 
 		# 色の決定用のモーダルウィンドウ
 		self.pen_color_modal_view = ModalView(size_hint=(0.8, 0.8))
+		self.clr_picker = ColorPicker(size_hint_y=9)
+		self.clr_picker.bind(color=lambda _, color: self.change_pen_color(color))
 		self.pen_color_modal_layout = BoxLayout(orientation='vertical')
-		self.current_color_label = PenPreview()
-		self.r_label = Label(text="Red: "+str(self.paint.red))
-		self.g_label = Label(text="Green: "+str(self.paint.green))
-		self.b_label = Label(text="Blue: "+str(self.paint.blue))
-		self.r_slider = Slider(min=0, max=255, value=self.paint.red, step=1, 
-			on_touch_move=lambda x, y : self.change_pen_color_slider('red', self.r_slider.value))
-		self.g_slider = Slider(min=0, max=255, value=self.paint.green, step=1, 
-			on_touch_move=lambda x, y : self.change_pen_color_slider('green', self.g_slider.value))
-		self.b_slider = Slider(min=0, max=255, value=self.paint.blue, step=1, 
-			on_touch_move=lambda x, y : self.change_pen_color_slider('blue', self.b_slider.value))
+		self.pen_color_modal_layout.add_widget(self.clr_picker)
 
-		self.pen_color_modal_layout.add_widget(self.current_color_label)
-		self.pen_color_modal_layout.add_widget(self.r_label)
-		self.pen_color_modal_layout.add_widget(self.r_slider)
-		self.pen_color_modal_layout.add_widget(self.g_label)
-		self.pen_color_modal_layout.add_widget(self.g_slider)
-		self.pen_color_modal_layout.add_widget(self.b_label)
-		self.pen_color_modal_layout.add_widget(self.b_slider)
 		self.pen_color_modal_layout.add_widget(Button(
 			text='Close', 
-			on_press=self.pen_color_modal_view.dismiss
+			on_press=self.pen_color_modal_view.dismiss, 
+			size_hint_y=1
 		))
 		self.pen_color_modal_view.add_widget(self.pen_color_modal_layout)
+		
 
 		# 全消去用のモーダルウィンドウ
 		self.clear_modal_view = ModalView(size_hint=(0.7, 0.7))
@@ -165,14 +154,9 @@ class MyPaintLayout(BoxLayout):
 		))
 		self.pen_width_modal_view.add_widget(self.pen_width_modal_layout)
 
-		self.pen_color_btn = ActionButton(text='Color', on_press=lambda _: [
-			self.pen_color_modal_view.open(), 
-	
-			# TODO: もっと正しく初期のプレビューを配置する方法があれば差し替える
-			Clock.schedule_once(lambda _: self.current_color_label.update_current_pen(
-				self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
-			), 0)
-		])
+		self.pen_color_btn = ActionButton(text='Color', on_press=lambda _: 
+			self.pen_color_modal_view.open()
+		)
 
 		self.pen_width_btn = ActionButton(text='width: ' + str(int(self.paint.current_width)), on_press=self.pen_width_modal_view.open)
 		self.clear_btn = ActionButton(text='Clear', on_press=self.clear_modal_view.open)
@@ -196,25 +180,13 @@ class MyPaintLayout(BoxLayout):
 		self.pen_preview.update_current_pen(
 			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
 		)
-		self.current_color_label.update_current_pen(
-			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
-		)
-	
-	def change_pen_color_slider(self, color:str, num:int):
-		if color=='red':
-			self.paint.red = num
-			self.r_label.text = "Red: "+str(self.paint.red)
-		elif color=='green':
-			self.paint.green = num
-			self.g_label.text = "Green: "+str(self.paint.green)
-		elif color=='blue':
-			self.paint.blue = num
-			self.b_label.text = "Blue: "+str(self.paint.blue)
 
+
+	def change_pen_color(self, color):
+		self.paint.red = color[0]
+		self.paint.green = color[1]
+		self.paint.blue = color[2]
 		self.pen_preview.update_current_pen(
-			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
-		)
-		self.current_color_label.update_current_pen(
 			self.paint.red, self.paint.green, self.paint.blue, self.paint.current_width
 		)
 
