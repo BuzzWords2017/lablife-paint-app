@@ -17,7 +17,7 @@ class ActionPenPreview(ActionLabel):
 		super(ActionPenPreview, self).__init__(**kwargs)
 
 		# TODO: もっと正しく初期のプレビューを配置する方法があれば差し替える
-		Clock.schedule_once(lambda _: self.update_current_pen(), 1)
+		Clock.schedule_once(lambda _: self.update_current_pen(), 2)
 
 	def update_current_pen(self, r=1, g=1, b=1, w=1):
 		self.canvas.clear()
@@ -144,7 +144,7 @@ class MyPaintLayout(BoxLayout):
 		self.pen_width_modal_view = ModalView(size_hint=(0.7, 0.5))
 		self.pen_width_modal_layout = BoxLayout(orientation='vertical')
 		self.pen_width_label = Label(text="Width: "+str(int(self.paint.current_width)))
-		self.pen_width_slider = Slider(min=1, max=10, value=self.paint.current_width, step=1, 
+		self.pen_width_slider = Slider(min=1, max=20, value=self.paint.current_width, step=1, 
 			on_touch_move=lambda x, y : self.change_pen_width(self.pen_width_slider.value))
 		self.pen_width_modal_layout.add_widget(self.pen_width_label)
 		self.pen_width_modal_layout.add_widget(self.pen_width_slider)
